@@ -164,14 +164,14 @@ async def receive_passport(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logger.error(f"Не удалось переслать документы админу: {e}")
         await update.message.reply_text(
-            "⚠️ Не получилось отправить документы менеджеру. "
+            "⚠️ Не получилось отправить документы . "
             "Попробуйте ещё раз позже или напишите в поддержку."
         )
         context.user_data.clear()
         return ConversationHandler.END
 
     await update.message.reply_text(
-        "✅ Документы отправлены менеджеру на проверку.\n"
+        "✅ Документы отправлены  на проверку.\n"
         "Как только верификация пройдёт, мы вам сообщим."
     )
 
