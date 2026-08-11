@@ -32,7 +32,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_ID = os.environ.get("ADMIN_ID")
 
 # Ссылка на чат с менеджером для кнопки "Контакты"
-MANAGER_CHAT_URL = os.environ.get("MANAGER_CHAT_URL", "https://t.me/your_manager")
+MANAGER_CHAT_URL = os.environ.get("MANAGER_CHAT_URL", "https://t.me/Chat_Support_TPAY")
 
 # Состояния диалога верификации
 SELFIE, PASSPORT = range(2)
