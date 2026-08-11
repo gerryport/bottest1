@@ -21,6 +21,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Хранение связки сообщений менеджера и клиентов
+# message_id -> telegram user id
+
 # ---------------------------------------------------------------------------
 # Настройки из переменных окружения (задаются в Railway → Variables)
 # ---------------------------------------------------------------------------
@@ -29,7 +32,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 # Числовой Telegram ID менеджера/админа, которому будут пересылаться документы.
 # Узнать свой ID можно у @userinfobot. Бот и админ должны хотя бы раз
 # написать друг другу /start, иначе Telegram не даст боту написать первым.
-ADMIN_ID = os.environ.get("ADMIN_ID")
+ADMIN_ID = os.environ.get("7132270436")
 
 # Ссылка на чат с менеджером для кнопки "Контакты"
 MANAGER_CHAT_URL = os.environ.get("MANAGER_CHAT_URL", "https://t.me/Chat_Support_TPAY")
@@ -101,10 +104,10 @@ async def start_verification(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.edit_message_text(
         "🪪 Верификация\n\n"
         "Для верификации потребуется:\n"
-        "1) Селфи;\n"
-        "2) Фото паспорта (разворот с фото и данными).\n\n"
-        "Документы проходят проверку  через лицензированный KYC-провайдер "
-        "Фотографии документов должны быть четкими, качественными и не размытыми.\n\n"
+        "1) селфи;\n"
+        "2) фото паспорта (разворот с фото и данными).\n\n"
+        "Документы будут переданы менеджеру и вручную загружены "
+        "в сервис проверки. Отправляя фото, вы соглашаетесь на это.\n\n"
         "Пришлите, пожалуйста, селфи. Отменить — /cancel"
     )
     return SELFIE
@@ -164,14 +167,14 @@ async def receive_passport(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logger.error(f"Не удалось переслать документы админу: {e}")
         await update.message.reply_text(
-            "⚠️ Не получилось отправить документы . "
+            "⚠️ Не получилось отправить документы менеджеру. "
             "Попробуйте ещё раз позже или напишите в поддержку."
         )
         context.user_data.clear()
         return ConversationHandler.END
 
     await update.message.reply_text(
-        "✅ Документы отправлены  на проверку.\n"
+        "✅ Документы отправлены менеджеру на проверку.\n"
         "Как только верификация пройдёт, мы вам сообщим."
     )
 
@@ -192,6 +195,29 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Ответ на неизвестные команды."""
     await update.message.reply_text(
         "❓ Неизвестная команда.\n\nДоступные команды:\n/start — главное меню"
+    )
+
+
+async def manager_reply_to_client(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Менеджер отвечает клиенту через бота (ответом на сообщение заявки)."""
+    if not ADMIN_ID or update.effective_user.id != int(ADMIN_ID):
+        return
+
+    if not update.message or not update.message.reply_to_message:
+        return
+
+    original = update.message.reply_to_message.text or update.message.reply_to_message.caption or ""
+
+    import re
+    match = re.search(r"Telegram ID: (\d+)", original)
+    if not match:
+        return
+
+    client_id = int(match.group(1))
+
+    await context.bot.send_message(
+        chat_id=client_id,
+        text=f"👨‍💼 Сообщение от менеджера:\n\n{update.message.text}"
     )
 
 
@@ -220,6 +246,7 @@ def main() -> None:
     app.add_handler(verification_conv)
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.COMMAND, unknown_command))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manager_reply_to_client))
 
     logger.info("🤖 Бот запущен...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
@@ -227,3 +254,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
