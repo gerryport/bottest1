@@ -32,7 +32,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 # Числовой Telegram ID менеджера/админа, которому будут пересылаться документы.
 # Узнать свой ID можно у @userinfobot. Бот и админ должны хотя бы раз
 # написать друг другу /start, иначе Telegram не даст боту написать первым.
-ADMIN_ID = os.environ.get("7132270436")
+ADMIN_ID = os.environ.get("ADMIN_ID")
 
 # Ссылка на чат с менеджером для кнопки "Контакты"
 MANAGER_CHAT_URL = os.environ.get("MANAGER_CHAT_URL", "https://t.me/Chat_Support_TPAY")
